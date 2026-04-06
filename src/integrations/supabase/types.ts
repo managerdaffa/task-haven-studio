@@ -14,7 +14,94 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          created_at: string
+          folder_id: string
+          id: string
+          name: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          folder_id: string
+          id?: string
+          name: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          folder_id?: string
+          id?: string
+          name?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      files: {
+        Row: {
+          folder_id: string
+          id: string
+          name: string
+          size: number
+          storage_path: string
+          type: string
+          uploaded_at: string
+        }
+        Insert: {
+          folder_id: string
+          id?: string
+          name: string
+          size?: number
+          storage_path?: string
+          type?: string
+          uploaded_at?: string
+        }
+        Update: {
+          folder_id?: string
+          id?: string
+          name?: string
+          size?: number
+          storage_path?: string
+          type?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      folders: {
+        Row: {
+          created_at: string
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
