@@ -187,7 +187,7 @@ export default function Index() {
       <Dialog open={!!editId} onOpenChange={() => setEditId(null)}>
         <DialogContent className="gradient-card glow-border border-primary/20 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg gradient-primary bg-clip-text text-transparent">
+            <DialogTitle className="font-display text-lg gradient-text">
               EDIT FOLDER
             </DialogTitle>
           </DialogHeader>
