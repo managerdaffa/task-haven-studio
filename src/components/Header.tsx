@@ -21,11 +21,11 @@ export default function Header({ loggedIn, onLogin, onLogout }: Props) {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2"
           >
-            <div className="w-8 h-8 rounded gradient-primary flex items-center justify-center font-display text-sm font-bold text-primary-foreground">
-              T
+            <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center font-display text-sm font-bold text-primary-foreground shadow-lg shadow-primary/30">
+              UP
             </div>
-            <span className="font-display text-lg tracking-wider text-foreground">
-              TASK<span className="text-primary">UPLOAD</span>
+            <span className="font-display text-lg font-bold tracking-wide text-foreground">
+              UPLOAD<span className="text-primary">PROJECT</span><span className="text-accent">PKL</span>
             </span>
           </motion.div>
 

@@ -66,21 +66,38 @@ export default function Index() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="text-center mb-12"
+                className="text-center mb-16"
               >
-                <p className="text-sm font-body text-muted-foreground tracking-widest uppercase mb-2">
-                  Selamat Datang di
-                </p>
-                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl tracking-wider glow-text text-foreground mb-3">
-                  WEBSITE UPLOAD TUGAS
-                </h1>
-                <p className="text-muted-foreground font-body text-lg">
-                  Milik{" "}
-                  <span className="gradient-primary bg-clip-text text-transparent font-semibold">
-                    @DAFFA AUFAA PRATAMA IRAWAN
-                  </span>
-                </p>
-                <div className="mt-4 w-24 h-0.5 mx-auto gradient-primary rounded-full" />
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.8, type: "spring" }}
+                  className="inline-block mb-6"
+                >
+                  <div className="w-20 h-20 mx-auto rounded-2xl gradient-primary flex items-center justify-center font-display text-2xl font-black text-primary-foreground shadow-2xl shadow-primary/40 glow-box">
+                    UP
+                  </div>
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                >
+                  <p className="text-xs font-body text-primary tracking-[0.3em] uppercase mb-3 font-semibold">
+                    // WELCOME TO
+                  </p>
+                  <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black glow-text text-foreground mb-4 leading-tight">
+                    UPLOAD<span className="gradient-primary bg-clip-text text-transparent">PROJECT</span>PKL
+                  </h1>
+                  <p className="text-muted-foreground font-body text-base tracking-wide max-w-md mx-auto">
+                    Platform upload &amp; manajemen project Praktek Kerja Lapangan
+                  </p>
+                </motion.div>
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <div className="w-12 h-0.5 gradient-primary rounded-full" />
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <div className="w-12 h-0.5 gradient-primary rounded-full" />
+                </div>
               </motion.div>
 
               {/* Folders */}
