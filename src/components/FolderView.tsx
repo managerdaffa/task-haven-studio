@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
-import { TaskFolder, TaskFile, addFileToFolder, deleteFileFromFolder, getFolders } from "@/lib/store";
-import { ArrowLeft, Upload, FileText, Trash2, Download } from "lucide-react";
+import { TaskFolder, TaskFile, FolderComment, addFileToFolder, deleteFileFromFolder, addCommentToFolder, getFolders } from "@/lib/store";
+import { ArrowLeft, Upload, FileText, Trash2, Download, MessageSquare, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
@@ -14,8 +16,10 @@ interface Props {
 export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [commentName, setCommentName] = useState("");
+  const [commentText, setCommentText] = useState("");
 
-  // Re-read folder from store to get latest files
   const currentFolder = getFolders().find((f) => f.id === folder.id) || folder;
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,14 +62,30 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
     a.click();
   };
 
+  const handleSubmitComment = () => {
+    if (!commentName.trim() || !commentText.trim()) return;
+    addCommentToFolder(folder.id, commentName.trim(), commentText.trim());
+    setCommentName("");
+    setCommentText("");
+    setCommentOpen(false);
+    onUpdate();
+  };
+
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) +
+      " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
@@ -73,10 +93,18 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div>
-          <h2 className="font-display text-xl tracking-wider text-foreground">{currentFolder.title}</h2>
-          <p className="text-xs text-muted-foreground font-body">{currentFolder.files.length} file</p>
+        <div className="flex-1">
+          <h2 className="font-display text-xl font-bold tracking-wide text-foreground">{currentFolder.title}</h2>
+          <p className="text-xs text-muted-foreground font-body">{currentFolder.files.length} file · {currentFolder.comments.length} komentar</p>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setCommentOpen(true)}
+          className="gap-1.5 border-primary/30 text-primary hover:bg-primary/10 font-display text-xs tracking-wider"
+        >
+          <MessageSquare className="w-3.5 h-3.5" /> KOMENTAR
+        </Button>
       </div>
 
       {/* File list */}
@@ -91,14 +119,13 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
               className="gradient-card glow-border rounded-lg p-4 flex items-center justify-between"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded gradient-primary/20 flex items-center justify-center shrink-0 bg-primary/10">
+                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <FileText className="w-4 h-4 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-body text-foreground truncate">{file.name}</p>
+                  <p className="text-sm font-body font-medium text-foreground truncate">{file.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatSize(file.size)} •{" "}
-                    {new Date(file.uploadedAt).toLocaleDateString("id-ID")}
+                    {formatSize(file.size)} · {new Date(file.uploadedAt).toLocaleDateString("id-ID")}
                   </p>
                 </div>
               </div>
@@ -140,10 +167,74 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
             className="w-full gradient-primary font-display tracking-wider gap-2"
           >
             <Upload className="w-4 h-4" />
-            {uploading ? "MENGUPLOAD..." : "UPLOAD TUGAS"}
+            {uploading ? "MENGUPLOAD..." : "UPLOAD FILE"}
           </Button>
         </div>
       )}
+
+      {/* Comments section */}
+      {currentFolder.comments.length > 0 && (
+        <div className="space-y-3 pt-4">
+          <h3 className="font-display text-xs tracking-widest text-muted-foreground uppercase flex items-center gap-2">
+            <MessageSquare className="w-3.5 h-3.5" /> Komentar ({currentFolder.comments.length})
+          </h3>
+          <div className="space-y-2">
+            {currentFolder.comments.map((c, i) => (
+              <motion.div
+                key={c.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03 }}
+                className="gradient-card rounded-lg p-3 border border-border/50"
+              >
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                    <User className="w-3 h-3 text-primary" />
+                  </div>
+                  <span className="text-sm font-body font-semibold text-foreground">{c.name}</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDate(c.createdAt)}</span>
+                </div>
+                <p className="text-sm font-body text-muted-foreground pl-8">{c.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Comment Dialog */}
+      <Dialog open={commentOpen} onOpenChange={setCommentOpen}>
+        <DialogContent className="gradient-card glow-border border-primary/20 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg gradient-text">
+              TULIS KOMENTAR
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <label className="text-xs font-display tracking-wider text-muted-foreground uppercase">Nama</label>
+              <Input
+                placeholder="Masukkan nama kamu..."
+                value={commentName}
+                onChange={(e) => setCommentName(e.target.value)}
+                className="bg-secondary border-primary/20 focus:border-primary"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-display tracking-wider text-muted-foreground uppercase">Komentar</label>
+              <Input
+                placeholder="Tulis komentar..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="bg-secondary border-primary/20 focus:border-primary"
+                onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
+              />
+            </div>
+            <Button onClick={handleSubmitComment} className="w-full gradient-primary font-display tracking-wider gap-2">
+              <Send className="w-4 h-4" /> KIRIM
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

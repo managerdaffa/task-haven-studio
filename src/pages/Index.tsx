@@ -87,7 +87,7 @@ export default function Index() {
                     // WELCOME TO
                   </p>
                   <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black glow-text text-foreground mb-4 leading-tight">
-                    UPLOAD<span className="gradient-primary bg-clip-text text-transparent">PROJECT</span>PKL
+                    UPLOAD<span className="gradient-text">PROJECT</span>PKL
                   </h1>
                   <p className="text-muted-foreground font-body text-base tracking-wide max-w-md mx-auto">
                     Platform upload &amp; manajemen project Praktek Kerja Lapangan
@@ -164,7 +164,7 @@ export default function Index() {
       <Dialog open={newFolderOpen} onOpenChange={setNewFolderOpen}>
         <DialogContent className="gradient-card glow-border border-primary/20 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg gradient-primary bg-clip-text text-transparent">
+            <DialogTitle className="font-display text-lg gradient-text">
               BUAT FOLDER BARU
             </DialogTitle>
           </DialogHeader>
@@ -187,7 +187,7 @@ export default function Index() {
       <Dialog open={!!editId} onOpenChange={() => setEditId(null)}>
         <DialogContent className="gradient-card glow-border border-primary/20 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg gradient-primary bg-clip-text text-transparent">
+            <DialogTitle className="font-display text-lg gradient-text">
               EDIT FOLDER
             </DialogTitle>
           </DialogHeader>
