@@ -1,44 +1,55 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Header from "@/components/Header";
 import FolderCard from "@/components/FolderCard";
 import FolderView from "@/components/FolderView";
 import { getFolders, createFolder, deleteFolder, updateFolderTitle, TaskFolder } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, FolderOpen } from "lucide-react";
+import { Plus, FolderOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 export default function Index() {
   const [loggedIn, setLoggedIn] = useState(false);
-  const [folders, setFolders] = useState<TaskFolder[]>(getFolders());
+  const [folders, setFolders] = useState<TaskFolder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeFolder, setActiveFolder] = useState<TaskFolder | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [editId, setEditId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
-  const refresh = useCallback(() => setFolders(getFolders()), []);
+  const refresh = useCallback(async () => {
+    const data = await getFolders();
+    setFolders(data);
+    setLoading(false);
+  }, []);
 
-  const handleCreateFolder = () => {
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const handleCreateFolder = async () => {
     if (!newTitle.trim()) return;
-    const f = createFolder(newTitle.trim());
+    const f = await createFolder(newTitle.trim());
     setNewTitle("");
     setNewFolderOpen(false);
-    refresh();
-    setActiveFolder(f);
+    if (f) {
+      await refresh();
+      setActiveFolder(f);
+    }
   };
 
-  const handleEditFolder = (id: string) => {
+  const handleEditFolder = async (id: string) => {
     if (!editTitle.trim()) return;
-    updateFolderTitle(id, editTitle.trim());
+    await updateFolderTitle(id, editTitle.trim());
     setEditId(null);
-    refresh();
+    await refresh();
   };
 
-  const handleDeleteFolder = (id: string) => {
-    deleteFolder(id);
-    refresh();
+  const handleDeleteFolder = async (id: string) => {
+    await deleteFolder(id);
+    await refresh();
   };
 
   return (
@@ -117,7 +128,12 @@ export default function Index() {
                   )}
                 </div>
 
-                {folders.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-20">
+                    <Loader2 className="w-10 h-10 mx-auto text-primary animate-spin mb-4" />
+                    <p className="text-muted-foreground font-body">Memuat data...</p>
+                  </div>
+                ) : folders.length === 0 ? (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
