@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
-import { TaskFolder, TaskFile, FolderComment, addFileToFolder, deleteFileFromFolder, addCommentToFolder, getFolders } from "@/lib/store";
-import { ArrowLeft, Upload, FileText, Trash2, Download, MessageSquare, Send, User } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { TaskFolder, TaskFile, addFileToFolder, deleteFileFromFolder, addCommentToFolder, getFolders, getFileUrl } from "@/lib/store";
+import { ArrowLeft, Upload, FileText, Trash2, Download, MessageSquare, Send, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,8 +19,17 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
   const [commentOpen, setCommentOpen] = useState(false);
   const [commentName, setCommentName] = useState("");
   const [commentText, setCommentText] = useState("");
+  const [currentFolder, setCurrentFolder] = useState<TaskFolder>(folder);
 
-  const currentFolder = getFolders().find((f) => f.id === folder.id) || folder;
+  const refreshFolder = useCallback(async () => {
+    const all = await getFolders();
+    const found = all.find((f) => f.id === folder.id);
+    if (found) setCurrentFolder(found);
+  }, [folder.id]);
+
+  useEffect(() => {
+    refreshFolder();
+  }, [refreshFolder]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -28,46 +37,37 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
     setUploading(true);
 
     for (const file of Array.from(files)) {
-      const dataUrl = await new Promise<string>((res) => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-
-      const taskFile: TaskFile = {
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        dataUrl,
-        uploadedAt: new Date().toISOString(),
-      };
-      addFileToFolder(folder.id, taskFile);
+      await addFileToFolder(folder.id, file);
     }
 
     setUploading(false);
+    await refreshFolder();
     onUpdate();
     if (inputRef.current) inputRef.current.value = "";
   };
 
-  const handleDelete = (fileId: string) => {
-    deleteFileFromFolder(folder.id, fileId);
+  const handleDelete = async (fileId: string) => {
+    await deleteFileFromFolder(folder.id, fileId);
+    await refreshFolder();
     onUpdate();
   };
 
   const handleDownload = (file: TaskFile) => {
+    const url = getFileUrl(file.storage_path);
     const a = document.createElement("a");
-    a.href = file.dataUrl;
+    a.href = url;
     a.download = file.name;
+    a.target = "_blank";
     a.click();
   };
 
-  const handleSubmitComment = () => {
+  const handleSubmitComment = async () => {
     if (!commentName.trim() || !commentText.trim()) return;
-    addCommentToFolder(folder.id, commentName.trim(), commentText.trim());
+    await addCommentToFolder(folder.id, commentName.trim(), commentText.trim());
     setCommentName("");
     setCommentText("");
     setCommentOpen(false);
+    await refreshFolder();
     onUpdate();
   };
 
@@ -125,7 +125,7 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
                 <div className="min-w-0">
                   <p className="text-sm font-body font-medium text-foreground truncate">{file.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatSize(file.size)} · {new Date(file.uploadedAt).toLocaleDateString("id-ID")}
+                    {formatSize(file.size)} · {new Date(file.uploaded_at).toLocaleDateString("id-ID")}
                   </p>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
             disabled={uploading}
             className="w-full gradient-primary font-display tracking-wider gap-2"
           >
-            <Upload className="w-4 h-4" />
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? "MENGUPLOAD..." : "UPLOAD FILE"}
           </Button>
         </div>
@@ -192,7 +192,7 @@ export default function FolderView({ folder, loggedIn, onBack, onUpdate }: Props
                     <User className="w-3 h-3 text-primary" />
                   </div>
                   <span className="text-sm font-body font-semibold text-foreground">{c.name}</span>
-                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDate(c.createdAt)}</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto">{formatDate(c.created_at)}</span>
                 </div>
                 <p className="text-sm font-body text-muted-foreground pl-8">{c.text}</p>
               </motion.div>

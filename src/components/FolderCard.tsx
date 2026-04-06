@@ -59,7 +59,7 @@ export default function FolderCard({ folder, loggedIn, onClick, onDelete, onEdit
       </div>
 
       <p className="text-xs text-muted-foreground mt-3 font-body">
-        {new Date(folder.createdAt).toLocaleDateString("id-ID", {
+        {new Date(folder.created_at).toLocaleDateString("id-ID", {
           day: "numeric", month: "long", year: "numeric",
         })}
       </p>
